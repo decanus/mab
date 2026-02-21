@@ -79,7 +79,31 @@ go build -o buyback ./cmd/buyback
 ./buyback run --config configs/example.yaml --interval 15m --dry-run
 ```
 
-Everything is config-driven: annual budget, regime multipliers, VWAP discount parameters, slippage limits, exchange preferences. One YAML file.
+Everything is config-driven. One YAML file. See [`configs/example.yaml`](configs/example.yaml) for the full annotated reference.
+
+### Configuration reference
+
+| Field | Description |
+|---|---|
+| `token` | Asset to buy back (e.g., `"UNI"`) |
+| `coingecko_id` | CoinGecko coin ID for market data (e.g., `"uniswap"`) |
+| `quote_asset` | Asset used to pay (e.g., `"USDC"`) |
+| `token_address` | ERC-20 contract address of the buy token |
+| `quote_asset_address` | ERC-20 contract address of the sell/quote token |
+| `annual_budget_usd` | Total annual buyback budget in USD |
+| `regime_multipliers` | Per-regime spending multiplier ranges |
+| `base_discount` | Target VWAP discount (0.02 = 2%) |
+| `vol_scaling_factor` | How much volatility widens the discount |
+| `max_slippage_bps` | Maximum slippage in basis points |
+| `order_split_count` | Number of sub-orders per cycle |
+| `execution_jitter` | Timing randomness (0.0–1.0) |
+| `min_execution_size` | Smallest order size in USD |
+| `prefer_batch_auction` | Prefer batch-auction venues (CoW Protocol) |
+| `exchange_weight_overrides` | Manual routing weight overrides |
+| `coingecko_api_url` | CoinGecko API base URL (default: public API; set to pro endpoint if you have a key) |
+| `cow_api_url` | CoW Protocol API base URL (chain-specific: `/mainnet`, `/xdai`, `/sepolia`) |
+| `wallet_address` | Ethereum address for exchange interactions |
+| `db_path` | SQLite database path for persistence |
 
 ## Querying history
 
