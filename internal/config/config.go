@@ -14,8 +14,8 @@ import (
 type BuybackConfig struct {
 	// Token is the asset to buy back (e.g., "AAVE").
 	Token string `yaml:"token"`
-	// CoingeckoID is the CoinGecko coin ID used to fetch market data.
-	// If empty, the engine falls back to a built-in symbol-to-ID map.
+	// CoingeckoID is the CoinGecko coin ID used to fetch market data (e.g. "aave", "ethereum", "celestia").
+	// Find your token's ID at https://www.coingecko.com/en/api/documentation
 	CoingeckoID string `yaml:"coingecko_id"`
 	// QuoteAsset is the asset used to pay (e.g., "USDC").
 	QuoteAsset string `yaml:"quote_asset"`
@@ -78,6 +78,9 @@ func (c *BuybackConfig) Validate() error {
 	if c.Token == "" {
 		return fmt.Errorf("token must be non-empty")
 	}
+	if c.CoingeckoID == "" {
+		return fmt.Errorf("coingecko_id must be non-empty")
+	}
 	if c.QuoteAsset == "" {
 		return fmt.Errorf("quote_asset must be non-empty")
 	}
@@ -114,6 +117,7 @@ func (c *BuybackConfig) Validate() error {
 func DefaultConfig() *BuybackConfig {
 	return &BuybackConfig{
 		Token:           "AAVE",
+		CoingeckoID:     "aave",
 		QuoteAsset:      "USDC",
 		AnnualBudgetUSD: decimal.NewFromInt(50_000_000),
 

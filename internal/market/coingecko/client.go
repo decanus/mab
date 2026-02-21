@@ -18,22 +18,6 @@ import (
 // Compile-time interface check.
 var _ market.Provider = (*Client)(nil)
 
-// tokenIDMap maps common token symbols to CoinGecko coin IDs.
-var tokenIDMap = map[string]string{
-	"aave":  "aave",
-	"eth":   "ethereum",
-	"btc":   "bitcoin",
-	"sol":   "solana",
-	"usdc":  "usd-coin",
-	"usdt":  "tether",
-	"dai":   "dai",
-	"link":  "chainlink",
-	"uni":   "uniswap",
-	"matic": "matic-network",
-	"avax":  "avalanche-2",
-	"dot":   "polkadot",
-}
-
 // vsCurrencyMap maps common quote symbols to CoinGecko vs_currency values.
 var vsCurrencyMap = map[string]string{
 	"usd":  "usd",
@@ -45,36 +29,23 @@ var vsCurrencyMap = map[string]string{
 
 // Client is a CoinGecko API client that implements market.Provider.
 type Client struct {
-	baseURL        string
-	httpClient     *http.Client
-	coinIDOverride string
+	baseURL    string
+	httpClient *http.Client
+	coinID     string
 }
 
 // NewClient creates a new CoinGecko client. If baseURL is empty, the default
-// CoinGecko API endpoint is used. If coinID is non-empty, it overrides the
-// built-in symbol-to-ID mapping for all requests.
+// CoinGecko API endpoint is used. coinID is the CoinGecko coin ID used for
+// all market data requests (e.g. "aave", "ethereum", "celestia").
 func NewClient(baseURL string, coinID string) *Client {
 	if baseURL == "" {
 		baseURL = "https://api.coingecko.com/api/v3"
 	}
 	return &Client{
-		baseURL:        strings.TrimRight(baseURL, "/"),
-		httpClient:     &http.Client{},
-		coinIDOverride: coinID,
+		baseURL:    strings.TrimRight(baseURL, "/"),
+		httpClient: &http.Client{},
+		coinID:     coinID,
 	}
-}
-
-// coinID maps a token symbol to its CoinGecko coin ID.
-// If a coinIDOverride is set on the client, it takes precedence.
-func (c *Client) coinID(symbol string) string {
-	if c.coinIDOverride != "" {
-		return c.coinIDOverride
-	}
-	lower := strings.ToLower(symbol)
-	if id, ok := tokenIDMap[lower]; ok {
-		return id
-	}
-	return lower
 }
 
 // vsCurrency maps a quote symbol to a CoinGecko vs_currency value.
@@ -110,7 +81,7 @@ func intervalToDays(interval string, periods int) int {
 
 // GetOHLCV fetches historical OHLCV data for the given trading pair.
 func (c *Client) GetOHLCV(ctx context.Context, pair types.TradingPair, interval string, periods int) ([]types.OHLCV, error) {
-	id := c.coinID(pair.Base)
+	id := c.coinID
 	cur := vsCurrency(pair.Quote)
 	days := intervalToDays(interval, periods)
 
@@ -145,7 +116,7 @@ func (c *Client) GetOHLCV(ctx context.Context, pair types.TradingPair, interval 
 
 // GetCurrentPrice fetches the current price for the given trading pair.
 func (c *Client) GetCurrentPrice(ctx context.Context, pair types.TradingPair) (decimal.Decimal, error) {
-	id := c.coinID(pair.Base)
+	id := c.coinID
 	cur := vsCurrency(pair.Quote)
 
 	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=%s", c.baseURL, id, cur)

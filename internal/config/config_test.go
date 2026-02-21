@@ -70,6 +70,10 @@ func TestValidateErrors(t *testing.T) {
 			mutate: func(c *BuybackConfig) { c.Token = "" },
 		},
 		{
+			name:   "empty coingecko_id",
+			mutate: func(c *BuybackConfig) { c.CoingeckoID = "" },
+		},
+		{
 			name:   "empty quote asset",
 			mutate: func(c *BuybackConfig) { c.QuoteAsset = "" },
 		},

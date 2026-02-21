@@ -66,17 +66,17 @@ go build -o buyback ./cmd/buyback
 ## Running it
 
 ```bash
-# Full cycle with mock data — classify regime, calculate budget, simulate execution
-./buyback run --config configs/example.yaml --mock --dry-run
+# Full cycle — classify regime, calculate budget, simulate execution
+./buyback run --config configs/example.yaml --dry-run
 
 # Just check what regime a token is in
-./buyback regime --token AAVE --quote USDC --mock
+./buyback regime --token AAVE --quote USDC
 
 # See the execution plan without doing anything
-./buyback plan --config configs/example.yaml --mock
+./buyback plan --config configs/example.yaml
 
 # Run continuously, evaluating every 15 minutes
-./buyback run --config configs/example.yaml --interval 15m --mock --dry-run
+./buyback run --config configs/example.yaml --interval 15m --dry-run
 ```
 
 Everything is config-driven: annual budget, regime multipliers, VWAP discount parameters, slippage limits, exchange preferences. One YAML file.
@@ -98,7 +98,7 @@ Every cycle, order, fill, and regime classification is persisted to SQLite. Quer
 
 ## Sample output
 
-What a single cycle looks like with `--mock --dry-run`:
+What a single cycle looks like with `--dry-run`:
 
 ```
 [REGIME]   token=AAVE regime=accumulation confidence=0.10

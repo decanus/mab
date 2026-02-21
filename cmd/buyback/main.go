@@ -16,10 +16,7 @@ import (
 	"github.com/decanus/mab/internal/engine"
 	"github.com/decanus/mab/internal/exchange"
 	"github.com/decanus/mab/internal/exchange/cow"
-	mocke "github.com/decanus/mab/internal/exchange/mock"
-	"github.com/decanus/mab/internal/market"
 	"github.com/decanus/mab/internal/market/coingecko"
-	mockm "github.com/decanus/mab/internal/market/mock"
 	"github.com/decanus/mab/internal/regime"
 	"github.com/decanus/mab/internal/store"
 	"github.com/decanus/mab/pkg/types"
@@ -51,7 +48,6 @@ func newRunCmd() *cobra.Command {
 	var (
 		cfgPath  string
 		dryRun   bool
-		mock     bool
 		interval time.Duration
 		dbPath   string
 	)
@@ -72,7 +68,7 @@ func newRunCmd() *cobra.Command {
 			defer cancel()
 
 			logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
-			eng, cleanup, err := buildEngine(cfg, mock, dryRun, logger)
+			eng, cleanup, err := buildEngine(cfg, dryRun, logger)
 			if err != nil {
 				return err
 			}
@@ -93,7 +89,6 @@ func newRunCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&cfgPath, "config", "c", "", "path to config file")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", true, "log decisions without submitting orders")
-	cmd.Flags().BoolVar(&mock, "mock", false, "use mock exchange and market data")
 	cmd.Flags().DurationVar(&interval, "interval", 0, "continuous mode interval (e.g. 15m)")
 	cmd.Flags().StringVar(&dbPath, "db", "", "database path (overrides config)")
 
@@ -135,7 +130,6 @@ func newRegimeCmd() *cobra.Command {
 	var (
 		token       string
 		quote       string
-		mock        bool
 		coingeckoID string
 	)
 
@@ -146,7 +140,7 @@ func newRegimeCmd() *cobra.Command {
 			ctx := context.Background()
 			logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-			provider := buildMarketProvider(mock, types.RegimeAccumulation, coingeckoID)
+			provider := coingecko.NewClient("", coingeckoID)
 			pair := types.TradingPair{Base: strings.ToUpper(token), Quote: strings.ToUpper(quote)}
 
 			ohlcv, err := provider.GetOHLCV(ctx, pair, "1d", 30)
@@ -188,7 +182,6 @@ func newRegimeCmd() *cobra.Command {
 	cmd.Flags().StringVar(&token, "token", "AAVE", "token to classify")
 	cmd.Flags().StringVar(&quote, "quote", "USDC", "quote asset")
 	cmd.Flags().StringVar(&coingeckoID, "coingecko-id", "", "CoinGecko coin ID (overrides built-in mapping)")
-	cmd.Flags().BoolVar(&mock, "mock", false, "use mock market data")
 
 	return cmd
 }
@@ -196,10 +189,7 @@ func newRegimeCmd() *cobra.Command {
 // --- plan command ---
 
 func newPlanCmd() *cobra.Command {
-	var (
-		cfgPath string
-		mock    bool
-	)
+	var cfgPath string
 
 	cmd := &cobra.Command{
 		Use:   "plan",
@@ -214,7 +204,7 @@ func newPlanCmd() *cobra.Command {
 			logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
 			// Always dry-run for plan.
-			eng, cleanup, err := buildEngine(cfg, mock, true, logger)
+			eng, cleanup, err := buildEngine(cfg, true, logger)
 			if err != nil {
 				return err
 			}
@@ -232,7 +222,6 @@ func newPlanCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfgPath, "config", "c", "", "path to config file")
-	cmd.Flags().BoolVar(&mock, "mock", false, "use mock exchange and market data")
 
 	return cmd
 }
@@ -429,7 +418,7 @@ func loadConfig(path string) (*config.BuybackConfig, error) {
 	return config.DefaultConfig(), nil
 }
 
-func buildEngine(cfg *config.BuybackConfig, useMock, dryRun bool, logger *slog.Logger) (*engine.Engine, func(), error) {
+func buildEngine(cfg *config.BuybackConfig, dryRun bool, logger *slog.Logger) (*engine.Engine, func(), error) {
 	classifier := regime.NewClassifier(
 		regime.NewPriceTrendScore(1.0),
 		regime.NewVolumeTrendScore(0.8),
@@ -437,29 +426,9 @@ func buildEngine(cfg *config.BuybackConfig, useMock, dryRun bool, logger *slog.L
 		regime.NewDivergenceScore(0.6),
 	)
 
-	var exchanges []exchange.Exchange
-	var provider market.Provider
-
-	if useMock {
-		mockEx1 := mocke.NewMockExchange("cow-mock",
-			mocke.WithDepth(decimal.NewFromInt(500000)),
-			mocke.WithSlippage(5),
-			mocke.WithFillRate(0.98),
-			mocke.WithBatchAuction(true),
-		)
-		mockEx2 := mocke.NewMockExchange("mock",
-			mocke.WithDepth(decimal.NewFromInt(300000)),
-			mocke.WithSlippage(8),
-			mocke.WithFillRate(0.95),
-		)
-		exchanges = []exchange.Exchange{mockEx1, mockEx2}
-		provider = mockm.NewMockProvider(types.RegimeAccumulation,
-			decimal.NewFromInt(180), decimal.NewFromInt(5000000), 42)
-	} else {
-		cowClient := cow.NewClient("https://api.cow.fi", "buyback-engine", "0x0000000000000000000000000000000000000000")
-		exchanges = []exchange.Exchange{cowClient}
-		provider = coingecko.NewClient("", cfg.CoingeckoID)
-	}
+	cowClient := cow.NewClient("https://api.cow.fi", "buyback-engine", "0x0000000000000000000000000000000000000000")
+	exchanges := []exchange.Exchange{cowClient}
+	provider := coingecko.NewClient("", cfg.CoingeckoID)
 
 	router := exchange.NewRouter(exchanges, cfg.PreferBatchAuction, cfg.ExchangeWeightOverrides)
 
@@ -478,13 +447,6 @@ func buildEngine(cfg *config.BuybackConfig, useMock, dryRun bool, logger *slog.L
 
 	eng := engine.NewEngine(cfg, classifier, router, exchanges, provider, st, logger, dryRun)
 	return eng, cleanup, nil
-}
-
-func buildMarketProvider(useMock bool, regime types.MarketRegime, coingeckoID string) market.Provider {
-	if useMock {
-		return mockm.NewMockProvider(regime, decimal.NewFromInt(180), decimal.NewFromInt(5000000), 42)
-	}
-	return coingecko.NewClient("", coingeckoID)
 }
 
 func printSummary(s *types.CycleSummary) {

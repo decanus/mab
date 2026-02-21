@@ -6,13 +6,11 @@
 
 # ── Asset pair ────────────────────────────────────────────────────────────────
 # token:        The asset to buy back.
-# coingecko_id: CoinGecko coin ID for market data. If empty, the engine uses
-#               a built-in symbol-to-ID map (works for common tokens like AAVE,
-#               ETH, BTC). Set this for tokens not in the built-in map.
+# coingecko_id: CoinGecko coin ID for market data (required).
 #               Find your token's ID at https://www.coingecko.com/en/api/documentation
 # quote_asset:  The asset used to pay for buybacks.
 token: "AAVE"
-coingecko_id: ""
+coingecko_id: "aave"
 quote_asset: "USDC"
 
 # ── Budget ────────────────────────────────────────────────────────────────────
