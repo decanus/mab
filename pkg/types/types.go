@@ -39,8 +39,10 @@ func (r Range) Mid() decimal.Decimal {
 
 // TradingPair represents a token pair for trading.
 type TradingPair struct {
-	Base  string // token to buy (e.g., "AAVE")
-	Quote string // token to spend (e.g., "USDC")
+	Base         string // token to buy (e.g., "AAVE")
+	Quote        string // token to spend (e.g., "USDC")
+	BaseAddress  string // ERC-20 contract address of the base token
+	QuoteAddress string // ERC-20 contract address of the quote token
 }
 
 func (tp TradingPair) String() string {

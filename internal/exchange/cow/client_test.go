@@ -61,7 +61,7 @@ func TestClient_GetLiquidity(t *testing.T) {
 	client, srv := newTestClient(t, handler)
 	defer srv.Close()
 
-	pair := types.TradingPair{Base: "0xAAVE", Quote: "0xUSDC"}
+	pair := types.TradingPair{Base: "AAVE", Quote: "USDC", BaseAddress: "0xAAVE", QuoteAddress: "0xUSDC"}
 	liq, err := client.GetLiquidity(context.Background(), pair, 50)
 	if err != nil {
 		t.Fatalf("GetLiquidity failed: %v", err)
@@ -127,7 +127,7 @@ func TestClient_SubmitOrder(t *testing.T) {
 	defer srv.Close()
 
 	order := &types.Order{
-		Pair:      types.TradingPair{Base: "0xAAVE", Quote: "0xUSDC"},
+		Pair:      types.TradingPair{Base: "AAVE", Quote: "USDC", BaseAddress: "0xAAVE", QuoteAddress: "0xUSDC"},
 		AmountUSD: decimal.NewFromInt(1000),
 		MaxSlipBps: 50,
 		OrderType: types.OrderTypeBatchAuction,
@@ -224,7 +224,7 @@ func TestClient_HTTPErrors(t *testing.T) {
 			client, srv := newTestClient(t, handler)
 			defer srv.Close()
 
-			pair := types.TradingPair{Base: "0xAAVE", Quote: "0xUSDC"}
+			pair := types.TradingPair{Base: "AAVE", Quote: "USDC", BaseAddress: "0xAAVE", QuoteAddress: "0xUSDC"}
 			_, err := client.GetLiquidity(context.Background(), pair, 50)
 			if err == nil {
 				t.Fatal("expected error, got nil")
@@ -249,7 +249,7 @@ func TestClient_HTTPErrors(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
-		pair := types.TradingPair{Base: "0xAAVE", Quote: "0xUSDC"}
+		pair := types.TradingPair{Base: "AAVE", Quote: "USDC", BaseAddress: "0xAAVE", QuoteAddress: "0xUSDC"}
 		_, err := client.GetLiquidity(ctx, pair, 50)
 		if err == nil {
 			t.Fatal("expected timeout error, got nil")

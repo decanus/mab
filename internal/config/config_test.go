@@ -18,8 +18,8 @@ func TestLoadExampleYAML(t *testing.T) {
 		t.Fatalf("Load(%q): %v", path, err)
 	}
 
-	if cfg.Token != "AAVE" {
-		t.Errorf("Token = %q, want %q", cfg.Token, "AAVE")
+	if cfg.Token != "UNI" {
+		t.Errorf("Token = %q, want %q", cfg.Token, "UNI")
 	}
 	if cfg.QuoteAsset != "USDC" {
 		t.Errorf("QuoteAsset = %q, want %q", cfg.QuoteAsset, "USDC")
@@ -106,6 +106,18 @@ func TestValidateErrors(t *testing.T) {
 		{
 			name:   "zero split count",
 			mutate: func(c *BuybackConfig) { c.OrderSplitCount = 0 },
+		},
+		{
+			name:   "empty wallet address",
+			mutate: func(c *BuybackConfig) { c.WalletAddress = "" },
+		},
+		{
+			name:   "empty token address",
+			mutate: func(c *BuybackConfig) { c.TokenAddress = "" },
+		},
+		{
+			name:   "empty quote asset address",
+			mutate: func(c *BuybackConfig) { c.QuoteAssetAddress = "" },
 		},
 	}
 

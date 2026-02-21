@@ -73,8 +73,8 @@ func (c *Client) GetLiquidity(ctx context.Context, pair types.TradingPair, slipp
 	refAmountWei := "10000000000" // 10,000 * 1e6
 
 	req := CowQuoteRequest{
-		SellToken:           pair.Quote,
-		BuyToken:            pair.Base,
+		SellToken:           pair.QuoteAddress,
+		BuyToken:            pair.BaseAddress,
 		SellAmountBeforeFee: refAmountWei,
 		Kind:                "sell",
 		From:                c.signerAddress,
@@ -129,8 +129,8 @@ func (c *Client) SubmitOrder(ctx context.Context, order *types.Order) (*types.Or
 	sellAmountWei := order.AmountUSD.Mul(decimal.NewFromInt(1e6)).BigInt().String()
 
 	cowOrder := CowOrder{
-		SellToken:         order.Pair.Quote,
-		BuyToken:          order.Pair.Base,
+		SellToken:         order.Pair.QuoteAddress,
+		BuyToken:          order.Pair.BaseAddress,
 		SellAmount:        sellAmountWei,
 		BuyAmount:         "1", // minimum buy amount; solver determines actual
 		ValidTo:           time.Now().Add(30 * time.Minute).Unix(),

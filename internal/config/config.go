@@ -19,6 +19,10 @@ type BuybackConfig struct {
 	CoingeckoID string `yaml:"coingecko_id"`
 	// QuoteAsset is the asset used to pay (e.g., "USDC").
 	QuoteAsset string `yaml:"quote_asset"`
+	// TokenAddress is the ERC-20 contract address of the buy token (required for on-chain exchanges).
+	TokenAddress string `yaml:"token_address"`
+	// QuoteAssetAddress is the ERC-20 contract address of the quote/sell token (required for on-chain exchanges).
+	QuoteAssetAddress string `yaml:"quote_asset_address"`
 	// AnnualBudgetUSD is the total annual budget in USD for buybacks.
 	AnnualBudgetUSD decimal.Decimal `yaml:"annual_budget_usd"`
 
@@ -48,6 +52,9 @@ type BuybackConfig struct {
 	// ExchangeWeightOverrides lets operators manually bias routing weights
 	// toward or away from specific exchanges.
 	ExchangeWeightOverrides map[string]float64 `yaml:"exchange_weight_overrides"`
+
+	// WalletAddress is the Ethereum address used for exchange interactions.
+	WalletAddress string `yaml:"wallet_address"`
 
 	// DBPath is the file path for the SQLite database used to persist state.
 	DBPath string `yaml:"db_path"`
@@ -84,6 +91,12 @@ func (c *BuybackConfig) Validate() error {
 	if c.QuoteAsset == "" {
 		return fmt.Errorf("quote_asset must be non-empty")
 	}
+	if c.TokenAddress == "" {
+		return fmt.Errorf("token_address must be non-empty")
+	}
+	if c.QuoteAssetAddress == "" {
+		return fmt.Errorf("quote_asset_address must be non-empty")
+	}
 	if !c.AnnualBudgetUSD.IsPositive() {
 		return fmt.Errorf("annual_budget_usd must be positive")
 	}
@@ -110,15 +123,21 @@ func (c *BuybackConfig) Validate() error {
 		return fmt.Errorf("order_split_count must be >= 1")
 	}
 
+	if c.WalletAddress == "" {
+		return fmt.Errorf("wallet_address must be non-empty")
+	}
+
 	return nil
 }
 
 // DefaultConfig returns a BuybackConfig populated with sensible default values.
 func DefaultConfig() *BuybackConfig {
 	return &BuybackConfig{
-		Token:           "AAVE",
-		CoingeckoID:     "aave",
-		QuoteAsset:      "USDC",
+		Token:             "AAVE",
+		CoingeckoID:       "aave",
+		QuoteAsset:        "USDC",
+		TokenAddress:      "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+		QuoteAssetAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 		AnnualBudgetUSD: decimal.NewFromInt(50_000_000),
 
 		RegimeMultipliers: map[types.MarketRegime]types.Range{
@@ -151,6 +170,7 @@ func DefaultConfig() *BuybackConfig {
 		PreferBatchAuction:      true,
 		ExchangeWeightOverrides: map[string]float64{},
 
-		DBPath: "./buyback.db",
+		WalletAddress: "0x0000000000000000000000000000000000000000",
+		DBPath:        "./buyback.db",
 	}
 }

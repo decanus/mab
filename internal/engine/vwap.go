@@ -45,6 +45,34 @@ func ShouldExecute(currentPrice, targetPrice decimal.Decimal) bool {
 	return currentPrice.LessThanOrEqual(targetPrice)
 }
 
+// CalculateVWAP computes the volume-weighted average price from OHLCV candles.
+// VWAP = sum(typical_price * volume) / sum(volume)
+// typical_price = (high + low + close) / 3
+// If total volume is zero, returns the average of closing prices.
+func CalculateVWAP(candles []types.OHLCV) decimal.Decimal {
+	if len(candles) == 0 {
+		return decimal.Zero
+	}
+
+	three := decimal.NewFromInt(3)
+	sumTPV := decimal.Zero
+	sumVol := decimal.Zero
+	sumClose := decimal.Zero
+
+	for _, c := range candles {
+		tp := c.High.Add(c.Low).Add(c.Close).Div(three)
+		sumTPV = sumTPV.Add(tp.Mul(c.Volume))
+		sumVol = sumVol.Add(c.Volume)
+		sumClose = sumClose.Add(c.Close)
+	}
+
+	if sumVol.IsZero() {
+		return sumClose.Div(decimal.NewFromInt(int64(len(candles))))
+	}
+
+	return sumTPV.Div(sumVol)
+}
+
 // CalculateRealizedVol computes 30-day annualized realized volatility from OHLCV data.
 // It calculates daily log returns from close prices, computes the standard deviation,
 // and annualizes by multiplying by sqrt(365).

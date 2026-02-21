@@ -57,7 +57,12 @@ func NewEngine(
 // calculates budgets, checks VWAP conditions, routes and executes orders,
 // and persists results to the store.
 func (e *Engine) RunCycle(ctx context.Context) (*types.CycleSummary, error) {
-	pair := types.TradingPair{Base: e.cfg.Token, Quote: e.cfg.QuoteAsset}
+	pair := types.TradingPair{
+		Base:         e.cfg.Token,
+		Quote:        e.cfg.QuoteAsset,
+		BaseAddress:  e.cfg.TokenAddress,
+		QuoteAddress: e.cfg.QuoteAssetAddress,
+	}
 	log := e.logger.With("token", e.cfg.Token, "pair", pair.String())
 
 	// 1. Get OHLCV data for 30 daily periods.
@@ -90,17 +95,15 @@ func (e *Engine) RunCycle(ctx context.Context) (*types.CycleSummary, error) {
 	// 6. Calculate realized volatility from OHLCV data.
 	realizedVol := CalculateRealizedVol(ohlcv)
 
-	// 7. Get current price.
+	// 7. Get current price from provider; fall back to latest OHLCV close.
 	currentPrice, err := e.provider.GetCurrentPrice(ctx, pair)
 	if err != nil {
-		return nil, fmt.Errorf("engine: get current price: %w", err)
+		log.Warn("failed to get live price, using latest OHLCV close", "error", err)
+		currentPrice = ohlcv[len(ohlcv)-1].Close
 	}
 
-	// 8. Get 30d VWAP.
-	vwap30d, err := e.provider.GetVWAP(ctx, pair, 30)
-	if err != nil {
-		return nil, fmt.Errorf("engine: get vwap: %w", err)
-	}
+	// 8. Calculate 30d VWAP from the already-fetched OHLCV data.
+	vwap30d := CalculateVWAP(ohlcv)
 
 	// 9. Calculate target price.
 	targetPrice := CalculateTargetPrice(vwap30d, e.cfg.BaseDiscount, e.cfg.VolScalingFactor, realizedVol, classification.Regime)

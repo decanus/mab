@@ -5,13 +5,17 @@
 # floating-point rounding.
 
 # ── Asset pair ────────────────────────────────────────────────────────────────
-# token:        The asset to buy back.
-# coingecko_id: CoinGecko coin ID for market data (required).
-#               Find your token's ID at https://www.coingecko.com/en/api/documentation
-# quote_asset:  The asset used to pay for buybacks.
-token: "AAVE"
-coingecko_id: "aave"
+# token:               The asset to buy back.
+# coingecko_id:        CoinGecko coin ID for market data (required).
+#                      Find your token's ID at https://www.coingecko.com/en/api/documentation
+# quote_asset:         The asset used to pay for buybacks.
+# token_address:       ERC-20 contract address of the buy token (required for CoW Protocol).
+# quote_asset_address: ERC-20 contract address of the sell/quote token.
+token: "UNI"
+coingecko_id: "uniswap"
 quote_asset: "USDC"
+token_address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
+quote_asset_address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 
 # ── Budget ────────────────────────────────────────────────────────────────────
 # annual_budget_usd: Total annual buyback budget in USD. The engine divides
@@ -66,6 +70,10 @@ min_execution_size: "1000"
 #                            values are weight multipliers (1.0 = neutral).
 prefer_batch_auction: true
 exchange_weight_overrides: {}
+
+# ── Wallet ──────────────────────────────────────────────────────────────────
+# wallet_address: Ethereum address used for exchange interactions (e.g., CoW Protocol).
+wallet_address: "0x37305b1cd40574e4c5ce33f8e8306be057fd7341"
 
 # ── Database ──────────────────────────────────────────────────────────────────
 # db_path: File path for the SQLite database that persists fills, cycle
