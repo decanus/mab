@@ -426,7 +426,7 @@ func buildEngine(cfg *config.BuybackConfig, dryRun bool, logger *slog.Logger) (*
 		regime.NewDivergenceScore(0.6),
 	)
 
-	cowClient := cow.NewClient("https://api.cow.fi/mainnet", "buyback-engine", cfg.WalletAddress)
+	cowClient := cow.NewClient(cfg.CowAPIURL, "buyback-engine", cfg.WalletAddress)
 	exchanges := []exchange.Exchange{cowClient}
 	provider := coingecko.NewClient("", cfg.CoingeckoID)
 

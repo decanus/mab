@@ -71,6 +71,13 @@ min_execution_size: "1000"
 prefer_batch_auction: true
 exchange_weight_overrides: {}
 
+# ── CoW Protocol ─────────────────────────────────────────────────────────────
+# cow_api_url: Base URL for the CoW Protocol API. Use the chain-specific path:
+#              Mainnet:  https://api.cow.fi/mainnet
+#              Gnosis:   https://api.cow.fi/xdai
+#              Sepolia:  https://api.cow.fi/sepolia
+cow_api_url: "https://api.cow.fi/mainnet"
+
 # ── Wallet ──────────────────────────────────────────────────────────────────
 # wallet_address: Ethereum address used for exchange interactions (e.g., CoW Protocol).
 wallet_address: "0x37305b1cd40574e4c5ce33f8e8306be057fd7341"
