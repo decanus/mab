@@ -1,0 +1,38 @@
+token: "AERO"
+coingecko_id: "aerodrome-finance"
+quote_asset: "USDC"
+token_address: "0x940181a94A35A4569E4529A3CDfB74e38FD98631"
+quote_asset_address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+
+annual_budget_usd: "50000000"
+
+regime_multipliers:
+  accumulation:
+    min: "1.5"
+    max: "2.0"
+  markup:
+    min: "0.3"
+    max: "0.5"
+  distribution:
+    min: "0.0"
+    max: "0.2"
+  markdown:
+    min: "0.8"
+    max: "1.0"
+
+base_discount: "0.02"
+vol_scaling_factor: "0.1"
+
+max_slippage_bps: 200
+order_split_count: 3
+execution_jitter: 0.3
+min_execution_size: "1000"
+
+prefer_batch_auction: true
+exchange_weight_overrides: {}
+
+coingecko_api_url: "https://api.coingecko.com/api/v3"
+cow_api_url: "https://api.cow.fi/mainnet"
+wallet_address: "0x37305b1cd40574e4c5ce33f8e8306be057fd7341"
+
+db_path: "./buyback-aero.db"

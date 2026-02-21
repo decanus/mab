@@ -279,6 +279,11 @@ func (e *Engine) queryTotalDepth(ctx context.Context, pair types.TradingPair, sl
 			liq, err := ex.GetLiquidity(gctx, pair, slippageBps)
 			if err != nil {
 				// Exchange unavailable; treat as zero depth.
+				e.logger.Warn("[LIQUIDITY] exchange returned error, treating as zero depth",
+					"exchange", ex.Name(),
+					"pair", fmt.Sprintf("%s/%s", pair.Base, pair.Quote),
+					"error", err,
+				)
 				results[i] = result{depth: decimal.Zero}
 				return nil
 			}
