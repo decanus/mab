@@ -35,6 +35,21 @@ go build -o buyback ./cmd/buyback # Build CLI binary
 - **Compile-time interface checks** — `var _ Interface = (*Impl)(nil)` in each implementation file
 - **Error wrapping** — `fmt.Errorf("package: operation: %w", err)`
 
+## Configuration
+
+Config lives in `configs/example.yaml`. Key fields:
+
+- `token`, `quote_asset` — ticker symbols (e.g., `"UNI"`, `"USDC"`)
+- `token_address`, `quote_asset_address` — ERC-20 contract addresses (required for CoW Protocol)
+- `coingecko_id` — CoinGecko coin ID for market data lookup
+- `coingecko_api_url` — CoinGecko API base URL (default: public API; swap for pro endpoint)
+- `cow_api_url` — CoW Protocol API base URL (chain-specific: `/mainnet`, `/xdai`, `/sepolia`)
+- `wallet_address` — Ethereum address for exchange interactions
+- `annual_budget_usd`, `regime_multipliers`, `base_discount`, `vol_scaling_factor` — budget and targeting
+- `max_slippage_bps`, `order_split_count`, `execution_jitter`, `min_execution_size` — execution params
+- `prefer_batch_auction`, `exchange_weight_overrides` — routing preferences
+- `db_path` — SQLite database path
+
 ## Extension Points
 
 - New market signal: implement `regime.ScoreFunc`, pass to `regime.NewClassifier()`
