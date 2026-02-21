@@ -53,6 +53,8 @@ type BuybackConfig struct {
 	// toward or away from specific exchanges.
 	ExchangeWeightOverrides map[string]float64 `yaml:"exchange_weight_overrides"`
 
+	// CoingeckoAPIURL is the base URL for the CoinGecko API (e.g., "https://api.coingecko.com/api/v3").
+	CoingeckoAPIURL string `yaml:"coingecko_api_url"`
 	// CowAPIURL is the base URL for the CoW Protocol API (e.g., "https://api.cow.fi/mainnet").
 	CowAPIURL string `yaml:"cow_api_url"`
 	// WalletAddress is the Ethereum address used for exchange interactions.
@@ -172,7 +174,8 @@ func DefaultConfig() *BuybackConfig {
 		PreferBatchAuction:      true,
 		ExchangeWeightOverrides: map[string]float64{},
 
-		CowAPIURL:     "https://api.cow.fi/mainnet",
+		CoingeckoAPIURL: "https://api.coingecko.com/api/v3",
+		CowAPIURL:       "https://api.cow.fi/mainnet",
 		WalletAddress: "0x0000000000000000000000000000000000000000",
 		DBPath:        "./buyback.db",
 	}
