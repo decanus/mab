@@ -133,9 +133,10 @@ func runContinuous(ctx context.Context, eng *engine.Engine, interval time.Durati
 
 func newRegimeCmd() *cobra.Command {
 	var (
-		token string
-		quote string
-		mock  bool
+		token       string
+		quote       string
+		mock        bool
+		coingeckoID string
 	)
 
 	cmd := &cobra.Command{
@@ -145,7 +146,7 @@ func newRegimeCmd() *cobra.Command {
 			ctx := context.Background()
 			logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-			provider := buildMarketProvider(mock, types.RegimeAccumulation)
+			provider := buildMarketProvider(mock, types.RegimeAccumulation, coingeckoID)
 			pair := types.TradingPair{Base: strings.ToUpper(token), Quote: strings.ToUpper(quote)}
 
 			ohlcv, err := provider.GetOHLCV(ctx, pair, "1d", 30)
@@ -186,6 +187,7 @@ func newRegimeCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&token, "token", "AAVE", "token to classify")
 	cmd.Flags().StringVar(&quote, "quote", "USDC", "quote asset")
+	cmd.Flags().StringVar(&coingeckoID, "coingecko-id", "", "CoinGecko coin ID (overrides built-in mapping)")
 	cmd.Flags().BoolVar(&mock, "mock", false, "use mock market data")
 
 	return cmd
@@ -456,7 +458,7 @@ func buildEngine(cfg *config.BuybackConfig, useMock, dryRun bool, logger *slog.L
 	} else {
 		cowClient := cow.NewClient("https://api.cow.fi", "buyback-engine", "0x0000000000000000000000000000000000000000")
 		exchanges = []exchange.Exchange{cowClient}
-		provider = coingecko.NewClient("")
+		provider = coingecko.NewClient("", cfg.CoingeckoID)
 	}
 
 	router := exchange.NewRouter(exchanges, cfg.PreferBatchAuction, cfg.ExchangeWeightOverrides)
@@ -478,11 +480,11 @@ func buildEngine(cfg *config.BuybackConfig, useMock, dryRun bool, logger *slog.L
 	return eng, cleanup, nil
 }
 
-func buildMarketProvider(useMock bool, regime types.MarketRegime) market.Provider {
+func buildMarketProvider(useMock bool, regime types.MarketRegime, coingeckoID string) market.Provider {
 	if useMock {
 		return mockm.NewMockProvider(regime, decimal.NewFromInt(180), decimal.NewFromInt(5000000), 42)
 	}
-	return coingecko.NewClient("")
+	return coingecko.NewClient("", coingeckoID)
 }
 
 func printSummary(s *types.CycleSummary) {

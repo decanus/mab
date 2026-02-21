@@ -57,7 +57,7 @@ func TestClient_GetOHLCV(t *testing.T) {
 	})
 	defer srv.Close()
 
-	client := NewClient(srv.URL)
+	client := NewClient(srv.URL, "")
 	pair := types.TradingPair{Base: "AAVE", Quote: "USD"}
 
 	candles, err := client.GetOHLCV(context.Background(), pair, "1d", 3)
@@ -121,7 +121,7 @@ func TestClient_GetCurrentPrice(t *testing.T) {
 	})
 	defer srv.Close()
 
-	client := NewClient(srv.URL)
+	client := NewClient(srv.URL, "")
 	pair := types.TradingPair{Base: "AAVE", Quote: "USD"}
 
 	price, err := client.GetCurrentPrice(context.Background(), pair)
@@ -171,7 +171,7 @@ func TestClient_GetVWAP(t *testing.T) {
 	})
 	defer srv.Close()
 
-	client := NewClient(srv.URL)
+	client := NewClient(srv.URL, "")
 	pair := types.TradingPair{Base: "AAVE", Quote: "USD"}
 
 	vwap, err := client.GetVWAP(context.Background(), pair, 2)
@@ -205,7 +205,7 @@ func TestClient_HTTPError(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			client := NewClient(srv.URL)
+			client := NewClient(srv.URL, "")
 			pair := types.TradingPair{Base: "AAVE", Quote: "USD"}
 
 			// Test GetCurrentPrice.
@@ -224,6 +224,8 @@ func TestClient_HTTPError(t *testing.T) {
 }
 
 func TestClient_TokenMapping(t *testing.T) {
+	client := NewClient("", "")
+
 	tests := []struct {
 		symbol   string
 		expected string
@@ -243,7 +245,30 @@ func TestClient_TokenMapping(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.symbol, func(t *testing.T) {
-			got := coinID(tt.symbol)
+			got := client.coinID(tt.symbol)
+			if got != tt.expected {
+				t.Errorf("coinID(%q) = %q, want %q", tt.symbol, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestClient_CoinIDOverride(t *testing.T) {
+	client := NewClient("", "my-custom-id")
+
+	// Override should take precedence regardless of symbol.
+	tests := []struct {
+		symbol   string
+		expected string
+	}{
+		{"AAVE", "my-custom-id"},
+		{"ETH", "my-custom-id"},
+		{"unknowntoken", "my-custom-id"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.symbol, func(t *testing.T) {
+			got := client.coinID(tt.symbol)
 			if got != tt.expected {
 				t.Errorf("coinID(%q) = %q, want %q", tt.symbol, got, tt.expected)
 			}

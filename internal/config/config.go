@@ -14,6 +14,9 @@ import (
 type BuybackConfig struct {
 	// Token is the asset to buy back (e.g., "AAVE").
 	Token string `yaml:"token"`
+	// CoingeckoID is the CoinGecko coin ID used to fetch market data.
+	// If empty, the engine falls back to a built-in symbol-to-ID map.
+	CoingeckoID string `yaml:"coingecko_id"`
 	// QuoteAsset is the asset used to pay (e.g., "USDC").
 	QuoteAsset string `yaml:"quote_asset"`
 	// AnnualBudgetUSD is the total annual budget in USD for buybacks.

@@ -45,24 +45,31 @@ var vsCurrencyMap = map[string]string{
 
 // Client is a CoinGecko API client that implements market.Provider.
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
+	baseURL        string
+	httpClient     *http.Client
+	coinIDOverride string
 }
 
 // NewClient creates a new CoinGecko client. If baseURL is empty, the default
-// CoinGecko API endpoint is used.
-func NewClient(baseURL string) *Client {
+// CoinGecko API endpoint is used. If coinID is non-empty, it overrides the
+// built-in symbol-to-ID mapping for all requests.
+func NewClient(baseURL string, coinID string) *Client {
 	if baseURL == "" {
 		baseURL = "https://api.coingecko.com/api/v3"
 	}
 	return &Client{
-		baseURL:    strings.TrimRight(baseURL, "/"),
-		httpClient: &http.Client{},
+		baseURL:        strings.TrimRight(baseURL, "/"),
+		httpClient:     &http.Client{},
+		coinIDOverride: coinID,
 	}
 }
 
 // coinID maps a token symbol to its CoinGecko coin ID.
-func coinID(symbol string) string {
+// If a coinIDOverride is set on the client, it takes precedence.
+func (c *Client) coinID(symbol string) string {
+	if c.coinIDOverride != "" {
+		return c.coinIDOverride
+	}
 	lower := strings.ToLower(symbol)
 	if id, ok := tokenIDMap[lower]; ok {
 		return id
@@ -103,7 +110,7 @@ func intervalToDays(interval string, periods int) int {
 
 // GetOHLCV fetches historical OHLCV data for the given trading pair.
 func (c *Client) GetOHLCV(ctx context.Context, pair types.TradingPair, interval string, periods int) ([]types.OHLCV, error) {
-	id := coinID(pair.Base)
+	id := c.coinID(pair.Base)
 	cur := vsCurrency(pair.Quote)
 	days := intervalToDays(interval, periods)
 
@@ -138,7 +145,7 @@ func (c *Client) GetOHLCV(ctx context.Context, pair types.TradingPair, interval 
 
 // GetCurrentPrice fetches the current price for the given trading pair.
 func (c *Client) GetCurrentPrice(ctx context.Context, pair types.TradingPair) (decimal.Decimal, error) {
-	id := coinID(pair.Base)
+	id := c.coinID(pair.Base)
 	cur := vsCurrency(pair.Quote)
 
 	url := fmt.Sprintf("%s/simple/price?ids=%s&vs_currencies=%s", c.baseURL, id, cur)
